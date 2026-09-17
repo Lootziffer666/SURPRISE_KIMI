@@ -3,7 +3,8 @@ name: Prepare and screenshot Kimi prototype
 on:
   push:
     paths:
-      - 'incoming/ebe30507.zip'
+      - '.github/workflows/prepare-and-screenshot.yml'
+      - 'incoming/ebe30507.b64.part*'
 
 permissions:
   contents: write
@@ -16,29 +17,54 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check transfer payload
+        id: gate
+        shell: bash
+        run: |
+          if [[ -f incoming/ebe30507.b64.part00 ]]; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
         with:
           node-version: 22
 
-      - name: Extract supplied one-shot
+      - name: Reconstruct and verify supplied one-shot
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
         run: |
           set -euo pipefail
-          test -f incoming/ebe30507.zip
+          cat incoming/ebe30507.b64.part00 \
+              incoming/ebe30507.b64.part01 \
+              incoming/ebe30507.b64.part02 \
+              incoming/ebe30507.b64.part03 \
+              incoming/ebe30507.b64.part04 | base64 -d > /tmp/ebe30507.zip
+          echo '8550b6d10bf1b0b3876d1b62f13392b7cd1ef1b2a776a95c40a0cfeb64121669  /tmp/ebe30507.zip' | sha256sum -c -
+          unzip -t /tmp/ebe30507.zip
           rm -rf snow-resource-game
-          unzip -q incoming/ebe30507.zip -d .
+          unzip -q /tmp/ebe30507.zip -d .
           test -f snow-resource-game/package.json
 
       - name: Install and build
-        working-directory: snow-resource-game
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
         run: |
-          npm install --no-audit --no-fund
+          set -euo pipefail
+          cd snow-resource-game
+          npm install --no-audit --no-fund --package-lock=false
           npm run build
           npm install --no-save --package-lock=false playwright@1.55.0
           npx playwright install --with-deps chromium
 
       - name: Start preview
-        working-directory: snow-resource-game
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
         run: |
+          set -euo pipefail
+          cd snow-resource-game
           nohup npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/surprise-preview.log 2>&1 &
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
@@ -48,14 +74,18 @@ jobs:
           exit 1
 
       - name: Runtime test and screenshots
-        working-directory: snow-resource-game
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
         run: |
+          set -euo pipefail
+          cd snow-resource-game
           node --input-type=module <<'NODE'
           import { chromium } from 'playwright';
           import fs from 'node:fs';
           import path from 'node:path';
 
           const out = path.join(process.env.GITHUB_WORKSPACE, 'docs', 'screenshots');
+          fs.rmSync(out, { recursive: true, force: true });
           fs.mkdirSync(out, { recursive: true });
           const browser = await chromium.launch({
             headless: true,
@@ -107,9 +137,18 @@ jobs:
           NODE
 
       - name: Commit unpacked source and screenshots
+        if: steps.gate.outputs.ready == 'true'
+        shell: bash
         run: |
           set -euo pipefail
-          git add snow-resource-game docs/screenshots
+          rm -rf snow-resource-game/node_modules snow-resource-game/dist
+          git add -A -- snow-resource-game docs/screenshots
+          git rm -f incoming/ebe30507.zip || true
+          git rm -f incoming/ebe30507.b64.part00 \
+                    incoming/ebe30507.b64.part01 \
+                    incoming/ebe30507.b64.part02 \
+                    incoming/ebe30507.b64.part03 \
+                    incoming/ebe30507.b64.part04
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Unpack and test Kimi one-shot prototype'
