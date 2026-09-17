@@ -27,16 +27,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat incoming/ebe30507.b64.part00 \
-              incoming/ebe30507.b64.part01 \
-              incoming/ebe30507.b64.part02 \
-              incoming/ebe30507.b64.part03 \
-              incoming/ebe30507.b64.part04 | base64 -d > /tmp/ebe30507.zip
+          cat incoming/ebe30507.b64.part00 incoming/ebe30507.b64.part01 incoming/ebe30507.b64.part02 incoming/ebe30507.b64.part03 incoming/ebe30507.b64.part04 | base64 -d > /tmp/ebe30507.zip
           echo '8550b6d10bf1b0b3876d1b62f13392b7cd1ef1b2a776a95c40a0cfeb64121669  /tmp/ebe30507.zip' | sha256sum -c -
           unzip -t /tmp/ebe30507.zip
           rm -rf snow-resource-game
           unzip -q /tmp/ebe30507.zip -d .
-          test -f snow-resource-game/package.json
 
       - name: Remove verified footnote artifacts
         shell: bash
@@ -44,21 +39,18 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
-          p = Path('snow-resource-game/src/controllers/PlayerController.js')
-          s = p.read_text()
-          old = s
-          s = s.replace('direction[^4_0]', 'direction[0]')
-          s = s.replace('direction[^4_1]', 'direction[1]')
-          if s == old:
-              raise SystemExit('Expected footnote artifacts were not found; refusing silent fallback')
-          if '[^4_' in s:
-              raise SystemExit('Footnote artifact remains after correction')
+          p=Path('snow-resource-game/src/controllers/PlayerController.js')
+          s=p.read_text()
+          old=s
+          s=s.replace('direction[^4_0]','direction[0]').replace('direction[^4_1]','direction[1]')
+          if s == old or '[^4_' in s:
+              raise SystemExit('Expected footnote correction did not apply cleanly')
           p.write_text(s)
           PY
           for f in $(find snow-resource-game/src -name '*.js' | sort); do node --check "$f"; done
           node --check snow-resource-game/vite.config.js
 
-      - name: Install, build and install browser
+      - name: Install build and browser
         shell: bash
         run: |
           set -euo pipefail
@@ -73,7 +65,6 @@ jobs:
         run: |
           cd snow-resource-game
           nohup npm run preview -- --host 127.0.0.1 --port 4173 >/tmp/kimi-preview.log 2>&1 &
-          echo $! >/tmp/kimi-preview.pid
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
             sleep 1
@@ -86,36 +77,32 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p docs/screenshots
-          cat > /tmp/kimi-test.mjs <<'JS'
+          cat > kimi-test.mjs <<'JS'
           import { chromium } from './snow-resource-game/node_modules/playwright/index.mjs';
           import fs from 'node:fs';
-          const browser = await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
-          const page = await browser.newPage({viewport:{width:1365,height:768}});
+          const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
+          const page=await browser.newPage({viewport:{width:1365,height:768}});
           const errors=[]; const warnings=[];
-          page.on('console', m => { if(m.type()==='error') errors.push(m.text()); if(m.type()==='warning') warnings.push(m.text()); });
-          page.on('pageerror', e => errors.push(String(e)));
-          await page.goto('http://127.0.0.1:4173/', {waitUntil:'networkidle'});
+          page.on('console',m=>{if(m.type()==='error')errors.push(m.text()); if(m.type()==='warning')warnings.push(m.text());});
+          page.on('pageerror',e=>errors.push(String(e)));
+          await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
           await page.waitForTimeout(1200);
-          const canvas = page.locator('canvas');
-          if (await canvas.count() < 1) throw new Error('No canvas rendered');
-          const info = await page.evaluate(() => {
-            const c=document.querySelector('canvas');
-            const gl=c?.getContext('webgl2')||c?.getContext('webgl');
-            return {title:document.title, canvasCount:document.querySelectorAll('canvas').length, width:c?.width, height:c?.height, webgl:!!gl};
-          });
-          if (!info.webgl) throw new Error('Canvas exists but WebGL context is unavailable');
-          await page.screenshot({path:'docs/screenshots/01-start.png', fullPage:true});
+          const canvas=page.locator('canvas');
+          if(await canvas.count()<1) throw new Error('No canvas rendered');
+          const info=await page.evaluate(()=>{const c=document.querySelector('canvas'); const gl=c?.getContext('webgl2')||c?.getContext('webgl'); return {title:document.title,canvasCount:document.querySelectorAll('canvas').length,width:c?.width,height:c?.height,webgl:!!gl};});
+          if(!info.webgl) throw new Error('Canvas exists but WebGL context is unavailable');
+          await page.screenshot({path:'docs/screenshots/01-start.png',fullPage:true});
           await page.keyboard.down('KeyW'); await page.waitForTimeout(700); await page.keyboard.up('KeyW'); await page.waitForTimeout(300);
-          await page.screenshot({path:'docs/screenshots/02-after-keyboard-input.png', fullPage:true});
+          await page.screenshot({path:'docs/screenshots/02-after-keyboard-input.png',fullPage:true});
           const box=await canvas.boundingBox(); if(!box) throw new Error('Canvas has no bounding box');
-          await page.mouse.click(box.x+box.width*0.72, box.y+box.height*0.58); await page.waitForTimeout(900);
-          await page.screenshot({path:'docs/screenshots/03-after-click.png', fullPage:true});
-          const report={testedAt:new Date().toISOString(),url:'http://127.0.0.1:4173/',...info,interactions:['W key','click'],consoleErrors:errors,consoleWarnings:warnings,status:errors.length?'rendered-with-console-errors':'rendered-without-runtime-errors'};
-          fs.writeFileSync('docs/screenshots/test-report.json', JSON.stringify(report,null,2));
+          await page.mouse.click(box.x+box.width*0.72,box.y+box.height*0.58); await page.waitForTimeout(900);
+          await page.screenshot({path:'docs/screenshots/03-after-click.png',fullPage:true});
+          fs.writeFileSync('docs/screenshots/test-report.json',JSON.stringify({testedAt:new Date().toISOString(),url:'http://127.0.0.1:4173/',...info,interactions:['W key','click'],consoleErrors:errors,consoleWarnings:warnings,status:errors.length?'rendered-with-console-errors':'rendered-without-runtime-errors'},null,2));
           await browser.close();
-          if(errors.length){ console.error(errors.join('\n')); process.exit(1); }
+          if(errors.length) process.exit(1);
           JS
-          node /tmp/kimi-test.mjs
+          node kimi-test.mjs
+          rm kimi-test.mjs
 
       - name: Commit unpacked source and screenshots
         shell: bash
@@ -124,6 +111,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add snow-resource-game docs/screenshots
-          git diff --cached --quiet && { echo 'No changes to commit'; exit 0; }
+          git diff --cached --quiet && exit 0
           git commit -m 'Unpack, fix and test Kimi one-shot prototype'
           git push
