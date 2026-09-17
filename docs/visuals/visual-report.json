@@ -1,0 +1,60 @@
+{
+  "testedAt": "2026-09-17T02:09:31.713Z",
+  "states": {
+    "00-title-hero.png": "Starting world / hero view",
+    "01-gameplay.png": "Actual ResourceManager pickup of wood and raw meat plus movement",
+    "02-ui-menu.png": "HUD plus projected $200 unlock overlay near the expansion gate",
+    "03-special-mechanic.png": "Fishing expansion unlocked through MapManager and entered"
+  },
+  "state": {
+    "title": "Snow Resource Game",
+    "cash": 0,
+    "expansionUnlocked": true,
+    "inventory": [
+      "wood",
+      "rawMeat"
+    ],
+    "status": "Fischteich freigeschaltet!"
+  },
+  "consoleErrors": [],
+  "consoleWarnings": [
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Material: parameter 'emissive' has value of undefined.",
+    "THREE.Material: parameter 'emissiveIntensity' has value of undefined.",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.WebGLShadowMap: PCFSoftShadowMap has been removed. Using PCFShadowMap instead.",
+    "[.WebGL-0x42400698e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[.WebGL-0x42400698e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[.WebGL-0x42400698e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+    "[.WebGL-0x42400698e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  ]
+}
