@@ -1,14 +1,36 @@
-<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#cfe0f2">
-    <meta name="description" content="SnowStack — a hyper-casual isometric resource management game built with Three.js">
-    <title>SnowStack — Hyper-Casual Resource Game</title>
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="theme-color" content="#bfe0ef" />
+    <title>Snow Resource Game</title>
   </head>
   <body>
-    <div id="app"></div>
-    
-  
+    <div id="game-root">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="hud" aria-live="polite">
+        <div class="hud-panel">
+          <span class="hud-label">Cash</span>
+          <span id="cash-value">$0</span>
+        </div>
+        <div class="hud-hint">WASD / Pfeile · Tippen zum Bewegen</div>
+      </div>
+
+      <div id="world-overlay-layer">
+        <div id="buy-overlay" class="world-overlay hidden">
+          <span class="overlay-title">UNLOCK</span>
+          <span class="overlay-price">$200</span>
+        </div>
+      </div>
+
+      <div id="status-message" class="status-message"></div>
+    </div>
 
     <script type="module" src="/src/main.js"></script>
-  </body></html>
+  </body>
+</html>

@@ -1,56 +1,48 @@
-export function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
+import * as THREE from 'three';
 
-/**
- * Frame-rate independent exponential smoothing factor result.
- * Returns the interpolated value between current and target.
- */
-export function dampValue(current, target, lambda, dt) {
-  return current + (target - current) * (1 - Math.exp(-lambda * dt));
-}
+export const clamp = (value, min, max) =>
+  Math.max(min, Math.min(max, value));
 
-export function randRange(min, max) {
-  return min + Math.random() * (max - min);
-}
+export const damp = (current, target, smoothing, deltaTime) => {
+  const factor = 1 - Math.exp(-smoothing * deltaTime);
+  return THREE.MathUtils.lerp(current, target, factor);
+};
 
-/**
- * Finds a random open X/Z point inside a rectangular area,
- * respecting circular exclusion zones and an optional set of
- * already occupied points with a minimum separation.
- * Returns { x, z } or null when no spot was found.
- */
-export function findOpenPosition(
-  area,
-  { margin = 0.5, exclusions = [], separation = 1.2, occupied = [], attempts = 40 } = {}
-) {
-  for (let i = 0; i < attempts; i++) {
-    const x = randRange(area.minX + margin, area.maxX - margin);
-    const z = randRange(area.minZ + margin, area.maxZ - margin);
+export const dampVector3 = (
+  current,
+  target,
+  smoothing,
+  deltaTime,
+  result = current
+) => {
+  const factor = 1 - Math.exp(-smoothing * deltaTime);
+  return result.lerpVectors(current, target, factor);
+};
 
-    let blocked = false;
-    for (let e = 0; e < exclusions.length; e++) {
-      const ex = exclusions[e];
-      const dx = x - ex.x;
-      const dz = z - ex.z;
-      if (dx * dx + dz * dz < ex.r * ex.r) {
-        blocked = true;
-        break;
-      }
-    }
-    if (blocked) continue;
+export const dampQuaternion = (
+  current,
+  target,
+  smoothing,
+  deltaTime
+) => {
+  const factor = 1 - Math.exp(-smoothing * deltaTime);
+  return current.slerp(target, factor);
+};
 
-    for (let p = 0; p < occupied.length; p++) {
-      const dx = x - occupied[p].x;
-      const dz = z - occupied[p].z;
-      if (dx * dx + dz * dz < separation * separation) {
-        blocked = true;
-        break;
-      }
-    }
-    if (blocked) continue;
+export const easeInOutCubic = (value) => {
+  const t = clamp(value, 0, 1);
+  return t < 0.5
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+};
 
-    return { x, z };
-  }
-  return null;
-}
+export const randomRange = (min, max) =>
+  min + Math.random() * (max - min);
+
+export const randomSign = () =>
+  Math.random() < 0.5 ? -1 : 1;
+
+export const createId = (prefix = 'id') =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;

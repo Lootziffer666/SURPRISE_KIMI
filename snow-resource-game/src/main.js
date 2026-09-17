@@ -1,6 +1,12 @@
 import './styles/main.css';
 import { GameManager } from './core/GameManager.js';
 
-const container = document.getElementById('app');
-const game = new GameManager(container);
+const canvas = document.querySelector('#game-canvas');
+
+if (!canvas) {
+  throw new Error('Das Spiele-Canvas wurde nicht gefunden.');
+}
+
+const game = new GameManager({ canvas });
+
 game.start();

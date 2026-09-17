@@ -1,7 +1,7 @@
 {
   "name": "snow-resource-game",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "three": "^0.169.0"
+    "three": "^0.186.0"
   },
   "devDependencies": {
-    "vite": "^5.4.8"
+    "vite": "^7.1.5"
   }
 }

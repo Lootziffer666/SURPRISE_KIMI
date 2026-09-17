@@ -1,47 +1,68 @@
-/**
- * Central runtime gameplay state. Rendering/UI never mutate state
- * directly; they subscribe to events emitted here.
- */
 export class GameState {
   constructor() {
     this.cash = 0;
-    this._listeners = new Map();
+    this.listeners = new Set();
   }
 
-  on(event, listener) {
-    if (!this._listeners.has(event)) this._listeners.set(event, new Set());
-    this._listeners.get(event).add(listener);
-    return () => this.off(event, listener);
+  subscribe(listener) {
+    this.listeners.add(listener);
+
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
-  off(event, listener) {
-    const set = this._listeners.get(event);
-    if (set) set.delete(listener);
-  }
-
-  _emit(event, payload) {
-    const set = this._listeners.get(event);
-    if (!set) return;
-    for (const listener of set) listener(payload);
+  notify(change) {
+    for (const listener of this.listeners) {
+      listener({
+        ...change,
+        cash: this.cash
+      });
+    }
   }
 
   addCash(amount) {
-    this.cash += amount;
-    this._emit('cashChanged', this.cash);
-  }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return false;
+    }
 
-  spendCash(amount) {
-    if (!this.canAfford(amount)) return false;
-    this.cash -= amount;
-    this._emit('cashChanged', this.cash);
+    this.cash += amount;
+
+    this.notify({
+      type: 'cash-added',
+      amount
+    });
+
     return true;
   }
 
   canAfford(amount) {
-    return this.cash >= amount;
+    return Number.isFinite(amount) &&
+      amount >= 0 &&
+      this.cash >= amount;
   }
 
-  getCash() {
-    return this.cash;
+  spendCash(amount) {
+    if (!this.canAfford(amount) || amount <= 0) {
+      return false;
+    }
+
+    this.cash -= amount;
+
+    this.notify({
+      type: 'cash-spent',
+      amount
+    });
+
+    return true;
+  }
+
+  reset() {
+    this.cash = 0;
+
+    this.notify({
+      type: 'reset',
+      amount: 0
+    });
   }
 }
